@@ -3,7 +3,7 @@
 set -e
 
 # Supported versions of node: v4.x, v5.x
-NODE_MINIMUM_VERSION="v4.0.0"
+NODE_MINIMUM_VERSION="v6.0.0"
 NODE_STABLE_VERSION="6.x"
 
 # Compare node versions.
@@ -119,14 +119,10 @@ else
     exit;
 fi
 
-# Generate config and install dependencies
-cd smart-mirror  || exit
-printf "%s\n${blu}generating config template...${end}\n"
-cp config.example.js config.js
-
 # Install smart-mirror dependencies
 printf "%s\n${blu}Installing smart-mirror dependencies...${end}\n"
 printf "%s${yel}This may take a while. Go grab a beer :)${end}\n"
+cd smart-mirror  || exit
 if npm install; then 
 	printf "%s${grn}Dependency installation complete!${end}\n"
 else
@@ -153,19 +149,24 @@ if ! grep -q '(smart-mirror)' ~/.config/lxsession/LXDE-pi/autostart; then
 @xset dpms 0 0 0' ~/.config/lxsession/LXDE-pi/autostart
 fi
 
+# Add start commands in the user's bashrc.
+echo "export MIRROR_HOME=~/smart-mirror" >> ~/.bashrc
+echo "run_mirror () { ( cd \$MIRROR_HOME && DISPLAY=:0 npm run \"\$@\" ); }" >> ~/.bashrc
+echo "alias mirror=run_mirror" >> ~/.bashrc
+cd ~ && source .bashrc
 
 # The mirror is now installed, yay!
 cat << "EOF"
 
         |        The smart-mirror is now installed!
-       / \       
-      / _ \      Once you fill out your config you can start the mirror with:
-     |.o '.|     > npm start
-     |'._.'|     Or if you are running over SSH:
-     |     |     > DISPLAY=:0 npm start
-   ,'|  |  |`.   
-  /  |  |  |  \  To lean more, check out the documentation at:
-  |,-'--|--'-.|  http://docs.smart-mirror.io
+       / \
+      / _ \      To configure audio input, speech, and the mirror itself, please visit:
+     |.o '.|     http://docs.smart-mirror.io
+     |'._.'|
+     |     |     To start your mirror:
+   ,'|  |  |`.   > mirror start
+  /  |  |  |  \
+  |,-'--|--'-.|
   
 EOF
 # ASCII art found on http://textart.io/
